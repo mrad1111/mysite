@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-content">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="hero-badge">Professional • Premium • Fast Delivery</span>
+                <h1>Upgrade your tech life with confidence.</h1>
+                <p>Discover curated smartphones, laptops, and accessories designed for modern lifestyles and seamless shopping.</p>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a href="#products" class="btn btn-primary btn-lg">Shop Now</a>
+                    <a href="{% url 'cart' %}" class="btn btn-outline-light btn-lg">View Cart</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="hero-card">
+                    <h3>Why customers love us</h3>
+                    <ul>
+                        <li>Trusted brands and authentic products</li>
+                        <li>Free shipping on orders above ₹2000</li>
+                        <li>Secure checkout and easy returns</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container py-5" id="products">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+        <div>
+            <h2 class="fw-bold">All Products</h2>
+            <p class="text-muted mb-0">Browse our full collection of premium devices and accessories.</p>
+        </div>
+        <a href="#products" class="btn btn-outline-primary mt-3 mt-md-0">Shop All</a>
+    </div>
+
+    <div class="row g-4">
+        {% for p in products %}
+        <div class="col-lg-3 col-md-6">
+            <div class="card product-card shadow-sm h-100">
+                {% if p.image %}
+                <a href="{% url 'product_detail' p.id %}">
+                    <img src="{{ p.image.url }}" class="card-img-top product-image" alt="{{ p.name }}">
+                </a>
+                {% else %}
+                <a href="{% url 'product_detail' p.id %}" class="product-image-placeholder" aria-label="View {{ p.name }}">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>{{ p.category.name|default:"Product" }}</span>
+                </a>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5><a href="{% url 'product_detail' p.id %}" class="text-dark text-decoration-none">{{ p.name }}</a></h5>
+                    <p class="text-warning">★★★★★</p>
+                    <h4 class="text-primary mt-auto">₹ {{ p.price }}</h4>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12"><div class="alert alert-warning text-center">No products found</div></div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Why Choose ARKAN'S Store?</h2>
+        <p class="text-muted">Premium shopping experiences built for convenience and trust.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="feature-box">
+                <div class="feature-icon">🚚</div>
+                <h5>Fast Delivery</h5>
+                <p>Reliable shipping across India with quick dispatch.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box">
+                <div class="feature-icon">🔒</div>
+                <h5>Secure Payments</h5>
+                <p>Protected checkout with trusted payment methods.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box">
+                <div class="feature-icon">↩</div>
+                <h5>Easy Returns</h5>
+                <p>Simple returns within 7 days for peace of mind.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box">
+                <div class="feature-icon">⭐</div>
+                <h5>Premium Quality</h5>
+                <p>Only verified devices and accessories from top brands.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

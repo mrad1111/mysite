@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us — ARKAN'S Store{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="row gy-4">
+        <div class="col-lg-6">
+            <h1 class="fw-bold">Contact Us</h1>
+            <p class="lead text-muted">Have a question about products, shipping, or your order? Our support team is here to help.</p>
+
+            <div class="card border-0 shadow-sm p-4 mb-4">
+                <h5 class="mb-3">Customer Support</h5>
+                <p class="mb-1"><strong>Email:</strong> <a href="mailto:arkandodhiya52@gmail.com">arkandodhiya52@gmail.com</a></p>
+                <p class="mb-1"><strong>Phone:</strong> +91 9106958084</p>
+                <p class="mb-0"><strong>Business Hours:</strong> Mon – Fri, 10AM – 8PM</p>
+            </div>
+
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="mb-3">Our Office</h5>
+                <p>Rajkot, Gujarat, India</p>
+                <p>We ship nationwide with a focus on fast delivery, quality products, and support you can trust.</p>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4">
+                <h2 class="fw-bold mb-3">Send Us a Message</h2>
+                {% if success_message %}
+                <div class="alert alert-success">{{ success_message }}</div>
+                {% endif %}
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <div class="text-danger mt-1">{{ form.full_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger mt-1">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                        <div class="text-danger mt-1">{{ form.subject.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                        <div class="text-danger mt-1">{{ form.message.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

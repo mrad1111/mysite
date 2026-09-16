@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="container py-5">
+
+    <div class="row">
+
+        <!-- Product Image -->
+        <div class="col-lg-6">
+
+            {% if product.image %}
+                <img src="{{ product.image.url }}"
+                    class="img-fluid rounded shadow-lg"
+style="max-height:550px; object-fit:cover;"
+                     alt="{{ product.name }}">
+            {% endif %}
+
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-lg-6">
+
+            <h1 class="fw-bold">
+                {{ product.name }}
+            </h1>
+
+            <p class="text-warning fs-4">
+                ⭐⭐⭐⭐⭐
+            </p>
+            <span class="badge bg-danger mb-2">
+    Best Seller
+</span>
+
+            <h2 class="text-primary">
+                ₹ {{ product.price }}
+            </h2>
+
+            <hr>
+
+          <h4>Description</h4>
+
+<p class="text-muted">
+    {{ product.description }}
+</p>
+
+            <h5 class="text-success">
+
+                {% if product.stock > 0 %}
+
+<span class="badge bg-success fs-6">
+    In Stock ({{ product.stock }} Available)
+</span>
+
+{% else %}
+
+<span class="badge bg-danger fs-6">
+    Out Of Stock
+</span>
+
+{% endif %}
+
+            </h5>
+
+           <div class="mt-4">
+
+        {% if user.is_authenticated %}
+        <a href="{% url 'add_to_cart' product.id %}"
+           class="btn btn-primary btn-lg me-2">
+
+            🛒 Add To Cart
+
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}?next={% url 'add_to_cart' product.id %}"
+           class="btn btn-primary btn-lg me-2">
+
+            🔐 Login to Add To Cart
+
+        </a>
+        {% endif %}
+        {% if product.stock > 0 %}
+            {% if user.is_authenticated %}
+            <a href="{% url 'order_now' product.id %}"
+               class="btn btn-success btn-lg me-2">
+
+                ⚡ Order Now
+
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'order_now' product.id %}"
+               class="btn btn-success btn-lg me-2">
+
+                ⚡ Order Now
+
+            </a>
+            {% endif %}
+        {% else %}
+        <button type="button" class="btn btn-secondary btn-lg me-2" title="Currently out of stock" disabled>
+            ⚡ Order Now
+        </button>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <a href="{% url 'add_to_wishlist' product.id %}"
+           class="btn btn-outline-danger btn-lg me-2">
+            {% if product.id in wishlist_product_ids %}❤️ Remove from Wishlist{% else %}🤍 Add to Wishlist{% endif %}
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}?next={% url 'product_detail' product.id %}"
+           class="btn btn-outline-secondary btn-lg me-2">
+            🤍 Add to Wishlist
+        </a>
+        {% endif %}
+
+    <a href="/"
+       class="btn btn-outline-secondary btn-lg">
+
+        ← Back
+
+    </a>
+
+</div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Related Products -->
+<section class="container py-5">
+
+    <h2 class="text-center fw-bold mb-4">
+        Related Products
+    </h2>
+
+    <div class="row">
+
+        {% for p in related_products %}
+
+        <div class="col-lg-3 col-md-6 mb-4">
+
+            <div class="card shadow-sm h-100">
+
+                {% if p.image %}
+                <a href="{% url 'product_detail' p.id %}">
+                    <img src="{{ p.image.url }}"
+                         class="card-img-top"
+                         style="height:220px; object-fit:cover;">
+                </a>
+                {% endif %}
+
+                <div class="card-body text-center">
+
+                    <h5>{{ p.name }}</h5>
+
+                    <p class="text-primary fw-bold">
+                        ₹ {{ p.price }}
+                    </p>
+
+                    <a href="{% url 'product_detail' p.id %}"
+                       class="btn btn-outline-primary btn-sm">
+                        View Details
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12 text-center">
+            <p>No Related Products Available.</p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+<hr class="my-5">
+
+<!-- Reviews Section -->
+<section>
+
+    <h3 class="mb-4">
+        Customer Reviews
+    </h3>
+
+    <!-- Review Form -->
+    {% if user.is_authenticated %}
+
+        <form method="POST" class="mb-5">
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Rating (1-5)
+                </label>
+
+                {{ form.rating }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Your Review
+                </label>
+
+                {{ form.comment }}
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                Submit Review
+
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <div class="alert alert-info">
+
+            Please
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+            to write a review.
+
+        </div>
+
+    {% endif %}
+
+    <hr>
+
+    <!-- Review List -->
+
+    {% for review in reviews %}
+
+        <div class="card shadow-sm mb-3">
+
+            <div class="card-body">
+
+                <h5>
+                    {{ review.user.username }}
+                </h5>
+
+                <p class="text-warning">
+                    ⭐ {{ review.rating }}/5
+                </p>
+
+                <p>
+                    {{ review.comment }}
+                </p>
+
+                <small class="text-muted">
+                    {{ review.created_at }}
+                </small>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="alert alert-secondary">
+
+            No reviews yet.
+
+        </div>
+
+    {% endfor %}
+
+</section>
+
+{% endblock %}

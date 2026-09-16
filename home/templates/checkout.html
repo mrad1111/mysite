@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h2 class="fw-bold mb-3">Checkout</h2>
+                <p class="text-muted">Complete your order with a fast, secure checkout experience.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">{{ form.full_name.label_tag }} {{ form.full_name }}</div>
+                        <div class="col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
+                        <div class="col-md-6">{{ form.phone.label_tag }} {{ form.phone }}</div>
+                        <div class="col-md-6">{{ form.city.label_tag }} {{ form.city }}</div>
+                        <div class="col-md-6">{{ form.zip_code.label_tag }} {{ form.zip_code }} {{ form.zip_code.errors }}</div>
+                        <div class="col-12">{{ form.address.label_tag }} {{ form.address }}</div>
+                        <div class="col-md-6">{{ form.payment_method.label_tag }} {{ form.payment_method }}</div>
+                    </div>
+                    {% if form.errors %}
+                        <div class="alert alert-danger mt-3">Please fix the highlighted fields and try again.</div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary mt-4">Place Order</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 p-4 summary-card">
+                <h3 class="fw-bold mb-3">Order Summary</h3>
+                {% for item in products %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                    <strong>₹{{ item.subtotal }}</strong>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between mb-2"><span>Subtotal</span><strong>₹{{ subtotal }}</strong></div>
+                <div class="d-flex justify-content-between mb-2"><span>Shipping</span><strong>{% if shipping == 0 %}FREE{% else %}₹{{ shipping }}{% endif %}</strong></div>
+                <div class="d-flex justify-content-between mb-3"><span>Discount</span><strong>₹{{ discount }}</strong></div>
+                <div class="d-flex justify-content-between"><h5 class="fw-bold">Grand Total</h5><h4 class="text-primary fw-bold">₹{{ grand_total }}</h4></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

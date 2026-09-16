@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login — ARKAN'S Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center align-items-center min-vh-75">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+            
+            <!-- Login Card -->
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden login-card">
+                <!-- Top Header Gradient Accent -->
+                <div class="bg-gradient-primary py-4 px-4 text-center text-white position-relative" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                    <div class="login-brand-icon mb-2 mx-auto rounded-circle d-flex align-items-center justify-content-center bg-white bg-opacity-20 text-white shadow-sm" style="width: 56px; height: 56px;">
+                        <i class="bi bi-shield-lock-fill fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 tracking-tight">Welcome Back</h3>
+                    <p class="mb-0 text-white-50 small">Sign in to your ARKAN'S Store account</p>
+                </div>
+
+                <div class="card-body p-4 p-sm-5">
+                    
+                    <!-- Display Form & Non-field Errors -->
+                    {% if form.errors or form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 py-2 px-3 small mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+                            <div>
+                                {% if form.non_field_errors %}
+                                    {% for error in form.non_field_errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div>Invalid username or password. Please check your credentials and try again.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'login' %}" novalidate class="login-form">
+                        {% csrf_token %}
+
+                        <!-- Username / Email Field -->
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label fw-semibold text-secondary small">Username or Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+                                {{ form.username }}
+                            </div>
+                            {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="id_password" class="form-label fw-semibold text-secondary small mb-1">Password</label>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-key-fill"></i>
+                                </span>
+                                {{ form.password }}
+                                <button type="button" class="btn btn-outline-secondary border-start-0 bg-body-tertiary px-3" id="togglePasswordBtn" title="Toggle password visibility">
+                                    <i class="bi bi-eye-slash-fill" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Remember Me & Forgot Password -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
+                                <label class="form-check-label small text-muted" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <span>Sign In</span>
+                            <i class="bi bi-arrow-right-short fs-5"></i>
+                        </button>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="position-relative my-4 text-center">
+                        <hr class="text-muted opacity-25">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-body px-3 small text-muted">New to ARKAN'S Store?</span>
+                    </div>
+
+                    <!-- Register Link -->
+                    <div class="text-center">
+                        <a href="{% url 'register' %}" class="btn btn-outline-secondary w-100 py-2 rounded-3 fw-medium text-decoration-none">
+                            <i class="bi bi-person-plus-fill me-1"></i> Create an Account
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Footer Badge -->
+                <div class="card-footer bg-body-tertiary text-center py-3 border-top-0">
+                    <small class="text-muted d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-lock-fill text-success"></i> 256-Bit SSL Encrypted Connection
+                    </small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Password Visibility Toggle Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passwordInput = document.getElementById('passwordInput') || document.getElementById('id_password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        if (toggleBtn && passwordInput && toggleIcon) {
+            toggleBtn.addEventListener('click', function() {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                toggleIcon.classList.toggle('bi-eye-slash-fill', !isPassword);
+                toggleIcon.classList.toggle('bi-eye-fill', isPassword);
+            });
+        }
+    });
+</script>
+{% endblock %}

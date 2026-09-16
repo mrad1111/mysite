@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+{% block content_title %}
+    {{ block.super }}
+    <div style="margin: 16px 0; padding: 16px 20px; background: #f8f9fa !important; border: 1px solid #d9dee5; border-radius: 8px; color: #1f2937 !important; opacity: 1 !important;">
+        <h3 style="margin: 0 0 12px; color: #111827 !important;">Store Overview</h3>
+        <p style="margin: 6px 0; color: #374151 !important;"><strong style="color: #111827 !important;">Total Sales:</strong> ₹{{ summary.total_sales|default:0 }}</p>
+        <p style="margin: 6px 0; color: #374151 !important;"><strong style="color: #111827 !important;">Orders:</strong> {{ summary.order_count|default:0 }}</p>
+        <p style="margin: 6px 0; color: #374151 !important;"><strong style="color: #111827 !important;">Latest Order:</strong> {% if summary.latest_order %}#{{ summary.latest_order.id }} by {{ summary.latest_order.user }}{% else %}None yet{% endif %}</p>
+    </div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h1>Products</h1>
+
+{% if products %}
+    <!-- Products -->
+{% else %}
+    <p>No products available yet.</p>
+{% endif %}
+
+{% endblock %}

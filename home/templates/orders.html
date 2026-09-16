@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders — ARKAN'S Store{% endblock %}
+
+{% block content %}
+<main class="orders-page">
+    <div class="container py-5">
+        <div class="orders-heading">
+            <div>
+                <span class="eyebrow">ACCOUNT CENTER</span>
+                <h1>My Orders</h1>
+                <p>Track your purchases, review order details, and keep your shopping history in one place.</p>
+            </div>
+            <a href="{% url 'home' %}" class="btn btn-primary orders-shop-button">Continue Shopping <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="orders-summary-bar">
+            <div><strong>{{ orders|length }}</strong><span>Total orders</span></div>
+            <div><strong>Secure</strong><span>Protected checkout</span></div>
+            <div><strong>Fast</strong><span>Reliable delivery</span></div>
+    </div>
+        {% if orders %}
+            <div class="order-list">
+                {% for order in orders %}
+                <article class="order-panel">
+                    <header class="order-panel-header">
+                        <div>
+                            <span class="order-label">ORDER NUMBER</span>
+                            <h2>#{{ order.id }}</h2>
+                        </div>
+                        <div class="order-date">
+                            <span class="order-label">PLACED ON</span>
+                            <strong>{{ order.created_at|date:"d M Y" }}</strong>
+                        </div>
+                        <span class="order-status">
+                            {% if order.status == "completed" %}
+                            <span aria-hidden="true">✓</span> Completed
+                            {% elif order.status == "confirmed" %}
+                            <span aria-hidden="true">✓</span> Confirmed
+                            {% else %}
+                            <span aria-hidden="true">•</span> Order placed
+                            {% endif %}
+                        </span>
+                    </header>
+
+                    <div class="order-progress" aria-label="Order {{ order.get_status_display }}">
+                        <span class="progress-step complete"><i>✓</i> Order placed</span>
+                        <span class="progress-line {% if order.status == "confirmed" or order.status == "completed" %}complete{% endif %}"></span>
+                        <span class="progress-step {% if order.status == "confirmed" or order.status == "completed" %}complete{% endif %}"><i>{% if order.status == "confirmed" or order.status == "completed" %}✓{% else %}2{% endif %}</i> Confirmed</span>
+                        <span class="progress-line {% if order.status == "completed" %}complete{% endif %}"></span>
+                        <span class="progress-step {% if order.status == "completed" %}complete{% endif %}"><i>{% if order.status == "completed" %}✓{% else %}3{% endif %}</i> Completed</span>
+                    </div>
+
+                    <div class="order-items">
+                        {% for item in order.orderitem_set.all %}
+                        <div class="order-item-row">
+                            <div class="order-item-image">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                <img src="{% static 'images/no-image.png' %}" alt="No product image">
+                                {% endif %}
+                            </div>
+                            <div class="order-item-details">
+                                <h3>{{ item.product.name }}</h3>
+                                <p>{{ item.product.description|truncatewords:14 }}</p>
+                                <span>Quantity: {{ item.quantity }}</span>
+                            </div>
+                            <a href="{% url 'product_detail' item.product.id %}" class="order-item-link">View product <span aria-hidden="true">↗</span></a>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <footer class="order-panel-footer">
+                        <span>Status: {{ order.get_status_display }}. Payment and delivery details are available for this order.</span>
+                        <strong>Total paid <b>₹{{ order.total_price }}</b></strong>
+                    </footer>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <section class="orders-empty">
+                <div class="empty-bag" aria-hidden="true">▣</div>
+                <h2>Your order history is waiting</h2>
+                <p>Once you place an order, its products and delivery details will appear here.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">Start Shopping <span aria-hidden="true">→</span></a>
+            </section>
+        {% endif %}
+</div>
+</main>
+{% endblock %}

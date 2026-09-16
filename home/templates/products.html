@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">All Products</h2>
+                <p class="text-muted mb-0">Browse our full collection of gadgets and accessories.</p>
+            </div>
+            <form method="get" class="d-flex gap-2 mt-3 mt-md-0">
+                <input type="text" name="search" class="form-control" placeholder="Search products" value="{{ search|default:'' }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+
+        {% if not is_category_page %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="btn-group flex-wrap" role="group">
+                    <a href="{% url 'home' %}" class="btn btn-outline-primary {% if not request.GET.category %}active{% endif %}">All</a>
+                    {% for category in categories %}
+                    <a href="{% url 'home' %}?category={{ category.id }}" class="btn btn-outline-primary {% if request.GET.category == category.id|stringformat:'s' %}active{% endif %}">
+                        {{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            {% for p in products %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm product-card">
+                    {% if p.image %}
+                    <a href="{% url 'product_detail' p.id %}">
+                        <img src="{{ p.image.url }}" class="card-img-top product-image" alt="{{ p.name }}">
+                    </a>
+                    {% else %}
+                    <a href="{% url 'product_detail' p.id %}" class="product-image-placeholder" aria-label="View {{ p.name }}">
+                        <i class="bi bi-box-seam" aria-hidden="true"></i>
+                        <span>{{ p.category.name|default:"Product" }}</span>
+                    </a>
+                    {% endif %}
+                    <div class="card-body text-center d-flex flex-column">
+                        <h5><a href="{% url 'product_detail' p.id %}" class="text-decoration-none text-dark">{{ p.name }}</a></h5>
+                        <h4 class="text-primary mt-auto">₹{{ p.price }}</h4>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'add_to_cart' p.id %}" class="btn btn-primary w-100 mt-3">Add To Cart</a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next={% url 'add_to_cart' p.id %}" class="btn btn-primary w-100 mt-3">Login to Add To Cart</a>
+                        {% endif %}
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'add_to_wishlist' p.id %}" class="btn btn-outline-danger w-100 mt-2">
+                            {% if p.id in wishlist_product_ids %}❤️ Remove from Wishlist{% else %}🤍 Add to Wishlist{% endif %}
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next={% url 'product_detail' p.id %}" class="btn btn-outline-secondary w-100 mt-2">
+                            🤍 Add to Wishlist
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12"><div class="alert alert-warning text-center">No products found</div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

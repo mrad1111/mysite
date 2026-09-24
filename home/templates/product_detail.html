@@ -12,8 +12,7 @@
 
             {% if product.image %}
                 <img src="{{ product.image.url }}"
-                    class="img-fluid rounded shadow-lg"
-style="max-height:550px; object-fit:cover;"
+                    class="img-fluid rounded shadow-lg product-detail-image"
                      alt="{{ product.name }}">
             {% endif %}
 
@@ -63,7 +62,7 @@ style="max-height:550px; object-fit:cover;"
 
             </h5>
 
-           <div class="mt-4">
+           <div class="mt-4 product-detail-actions">
 
         {% if user.is_authenticated %}
         <a href="{% url 'add_to_cart' product.id %}"

@@ -5,7 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 
 
-from .models import Product, Category, Order, OrderItem, Review , Wishlist
+from .models import Product, Category, Order, OrderItem, Review , Wishlist, CustomerProfile
 from .forms import RegisterForm, ReviewForm, LoginForm, CheckoutForm, ContactForm
 
 
@@ -63,6 +63,10 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            CustomerProfile.objects.update_or_create(
+                user=user,
+                defaults={"phone_number": form.cleaned_data["phone_number"]},
+            )
 
             login(request, user)
 
@@ -109,6 +113,32 @@ def user_logout(request):
     logout(request)
 
     return redirect("home")
+
+
+@login_required
+def profile(request):
+
+    categories = Category.objects.all()
+    cart = request.session.get("cart", {})
+    cart_count = sum(cart.values())
+
+    CustomerProfile.objects.get_or_create(user=request.user)
+    total_orders = Order.objects.filter(user=request.user).count()
+    recent_orders = Order.objects.filter(user=request.user).order_by("-created_at")[:3]
+    wishlist_count = Wishlist.objects.filter(user=request.user).count()
+
+    return render(
+        request,
+        "profile.html",
+        {
+            "categories": categories,
+            "cart_count": cart_count,
+            "customer": request.user,
+            "total_orders": total_orders,
+            "recent_orders": recent_orders,
+            "wishlist_count": wishlist_count,
+        },
+    )
 
 
 @login_required

@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import argparse
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -12,6 +13,14 @@ except ImportError:
     pass
 
 def main():
+    parser = argparse.ArgumentParser(description="Migrate the SQLite store to MySQL.")
+    parser.add_argument(
+        "--force-data",
+        action="store_true",
+        help="Replace existing MySQL data with the SQLite export.",
+    )
+    args = parser.parse_args()
+
     print("=" * 60)
     print("   SQLite -> MySQL Database Migration Utility for Django")
     print("=" * 60)
@@ -86,12 +95,36 @@ def main():
         print(f"  [ERROR] Migration failed: {e}")
         return
 
-    # 4. Load exported data into MySQL
+    # 4. Import only into an empty target so rerunning this utility does not
+    # overwrite product images or other changes made in the admin.
     print(f"\n[Step 4/4] Importing data from {json_dump_path.name} into MySQL...")
     try:
-        subprocess.run([sys.executable, "manage.py", "loaddata", json_dump_path.name], cwd=BASE_DIR, env=env_mysql, check=True)
-        print("  [OK] Data imported successfully into MySQL!")
-    except subprocess.CalledProcessError as e:
+        import MySQLdb
+
+        conn = MySQLdb.connect(
+            host=db_host,
+            user=db_user,
+            passwd=db_password,
+            port=db_port,
+            db=db_name,
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM home_product")
+        has_products = cursor.fetchone()[0] > 0
+        cursor.close()
+        conn.close()
+
+        if has_products and not args.force_data:
+            print("  [SKIP] MySQL already contains products; existing data was preserved.")
+        else:
+            subprocess.run(
+                [sys.executable, "manage.py", "loaddata", json_dump_path.name],
+                cwd=BASE_DIR,
+                env=env_mysql,
+                check=True,
+            )
+            print("  [OK] Data imported successfully into MySQL!")
+    except Exception as e:
         print(f"  [ERROR] Data import failed: {e}")
         return
 

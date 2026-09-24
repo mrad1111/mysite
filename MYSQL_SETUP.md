@@ -55,6 +55,11 @@ If you prefer to perform each step manually:
    py manage.py check
    ```
 
+The migration utility skips the data import when MySQL already contains products,
+so admin changes such as product images are preserved. Use
+`py migrate_to_mysql.py --force-data` only when you intentionally want to replace
+the MySQL data with the SQLite export.
+
 ---
 
 ## Switching back to SQLite

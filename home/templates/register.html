@@ -66,6 +66,22 @@
                             {% endif %}
                         </div>
 
+                        <!-- Phone Number Field -->
+                        <div class="mb-3">
+                            <label for="id_phone_number" class="form-label fw-semibold text-secondary small">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-telephone-fill"></i>
+                                </span>
+                                {{ form.phone_number }}
+                            </div>
+                            {% if form.phone_number.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
                         <!-- Password Field -->
                         <div class="mb-4">
                             <label for="id_password" class="form-label fw-semibold text-secondary small">Password</label>

@@ -17,7 +17,10 @@ SECRET_KEY = 'django-insecure-123456789'
 
 DEBUG = True   # 👈 IMPORTANT (keep True while developing)
 
-ALLOWED_HOSTS = []   # 👈 FIX for your error
+configured_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [host.strip() for host in configured_hosts.split(',') if host.strip()]
+if not ALLOWED_HOSTS and DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 
 # ======================
@@ -151,6 +154,13 @@ LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
 # ======================
+# EMAIL CONFIGURATION
+# ======================
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', "ARKAN'S Store <noreply@arkanstore.com>")
+
+
+# ======================
 # JAZZMIN ADMIN CONFIG
 # ======================
 JAZZMIN_SETTINGS = {
@@ -221,4 +231,4 @@ JAZZMIN_UI_TWEAKS = {
         "danger": "btn-danger",
         "success": "btn-success"
     }
-}
+}

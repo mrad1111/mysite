@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Profile — ARKAN'S Store{% endblock %}
+
+{% block content %}
+<section class="page-hero page-hero-sm">
+    <div class="container">
+        <div class="page-hero-inner">
+            <span class="eyebrow">Customer profile</span>
+            <h1>Welcome back, {{ customer.first_name|default:customer.username }}.</h1>
+            <p>Manage your account details, view recent orders, and keep track of your shopping preferences in one place.</p>
+        </div>
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="profile-card profile-summary">
+                <div class="profile-avatar">{{ customer.first_name|first|default:customer.username|first|upper }}</div>
+                <h2>{{ customer.get_full_name|default:customer.username }}</h2>
+                <p class="profile-username">@{{ customer.username }}</p>
+
+                <div class="profile-meta">
+                    <div>
+                        <span>Email</span>
+                        <strong>{{ customer.email|default:'Not provided' }}</strong>
+                    </div>
+                    <div>
+                        <span>Phone</span>
+                        <strong>{{ customer.profile.phone_number|default:'Not provided' }}</strong>
+                    </div>
+                    <div>
+                        <span>Member since</span>
+                        <strong>{{ customer.date_joined|date:'d M Y' }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <span class="metric-value">{{ total_orders }}</span>
+                        <span class="metric-label">Orders</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <span class="metric-value">{{ wishlist_count }}</span>
+                        <span class="metric-label">Wishlist</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric-card">
+                        <span class="metric-value">Active</span>
+                        <span class="metric-label">Status</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card mt-4">
+                <div class="profile-section-header">
+                    <h3>Account details</h3>
+                    <a href="{% url 'orders' %}" class="btn btn-outline-primary btn-sm">View orders</a>
+                </div>
+
+                <div class="row g-3 profile-detail-grid">
+                    <div class="col-md-6">
+                        <label>Username</label>
+                        <div>{{ customer.username }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Full name</label>
+                        <div>{{ customer.get_full_name|default:'Not provided' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Email address</label>
+                        <div>{{ customer.email|default:'Not provided' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Phone number</label>
+                        <div>{{ customer.profile.phone_number|default:'Not provided' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Account status</label>
+                        <div>Verified customer</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card mt-4">
+                <div class="profile-section-header">
+                    <h3>Recent orders</h3>
+                    <a href="{% url 'orders' %}" class="btn btn-link btn-sm px-0">See all</a>
+                </div>
+
+                {% if recent_orders %}
+                <div class="recent-order-list">
+                    {% for order in recent_orders %}
+                    <div class="recent-order-item">
+                        <div>
+                            <strong>#{{ order.id }}</strong>
+                            <p>{{ order.created_at|date:'d M Y' }}</p>
+                        </div>
+                        <span class="order-state">{{ order.get_status_display }}</span>
+                        <strong>₹{{ order.total_price }}</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No orders yet. Start shopping to see your order history here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

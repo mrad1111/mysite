@@ -1,70 +1,108 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Contact Us — ARKAN'S Store{% endblock %}
+{% block title %}Contact ARKAN'S Store{% endblock %}
 
 {% block content %}
+<section class="page-hero page-hero-sm">
+    <div class="container">
+        <div class="page-hero-inner">
+            <span class="eyebrow">Contact us</span>
+            <h1>We’re here to help with every question, order, and product query.</h1>
+            <p>Whether you are looking for a recommendation, tracking your order, or needing support after purchase, our team is ready to respond.</p>
+        </div>
+    </div>
+</section>
+
 <section class="container py-5">
-    <div class="row gy-4">
-        <div class="col-lg-6">
-            <h1 class="fw-bold">Contact Us</h1>
-            <p class="lead text-muted">Have a question about products, shipping, or your order? Our support team is here to help.</p>
-
-            <div class="card border-0 shadow-sm p-4 mb-4">
-                <h5 class="mb-3">Customer Support</h5>
-                <p class="mb-1"><strong>Email:</strong> <a href="mailto:arkandodhiya52@gmail.com">arkandodhiya52@gmail.com</a></p>
-                <p class="mb-1"><strong>Phone:</strong> +91 9106958084</p>
-                <p class="mb-0"><strong>Business Hours:</strong> Mon – Fri, 10AM – 8PM</p>
-            </div>
-
-            <div class="card border-0 shadow-sm p-4">
-                <h5 class="mb-3">Our Office</h5>
-                <p>Rajkot, Gujarat, India</p>
-                <p>We ship nationwide with a focus on fast delivery, quality products, and support you can trust.</p>
+    <div class="row g-4 g-lg-5 align-items-stretch">
+        <div class="col-lg-5">
+            <div class="info-card h-100">
+                <span class="eyebrow">Customer support</span>
+                <h2 class="mt-3 mb-3">Talk to our team</h2>
+                <div class="contact-list">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="bi bi-envelope"></i></div>
+                        <div>
+                            <label>Email</label>
+                            <a href="mailto:arkandodhiya52@gmail.com">arkandodhiya52@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="bi bi-telephone"></i></div>
+                        <div>
+                            <label>Phone</label>
+                            <a href="tel:+919106958084">+91 9106958084</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="bi bi-clock"></i></div>
+                        <div>
+                            <label>Business hours</label>
+                            <span>Mon – Sat, 10:00 AM – 8:00 PM</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="bi bi-geo-alt"></i></div>
+                        <div>
+                            <label>Location</label>
+                            <span>Rajkot, Gujarat, India</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm p-4">
-                <h2 class="fw-bold mb-3">Send Us a Message</h2>
+        <div class="col-lg-7">
+            <div class="contact-card">
+                <div class="contact-card-header">
+                    <span class="eyebrow">Send a message</span>
+                    <h3>Let us know how we can help</h3>
+                </div>
+
                 {% if success_message %}
-                <div class="alert alert-success">{{ success_message }}</div>
+                <div class="alert alert-success shadow-sm">{{ success_message }}</div>
                 {% endif %}
 
-                <form method="POST" novalidate>
+                <form method="POST" novalidate class="contact-form">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                        <div class="text-danger mt-1">{{ form.full_name.errors }}</div>
-                        {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            {{ form.full_name }}
+                            {% if form.full_name.errors %}
+                            <div class="text-danger mt-1">{{ form.full_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <div class="text-danger mt-1">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Subject</label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger mt-1">{{ form.subject.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Message</label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <div class="text-danger mt-1">{{ form.message.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email Address</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                        <div class="text-danger mt-1">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Subject</label>
-                        {{ form.subject }}
-                        {% if form.subject.errors %}
-                        <div class="text-danger mt-1">{{ form.subject.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Message</label>
-                        {{ form.message }}
-                        {% if form.message.errors %}
-                        <div class="text-danger mt-1">{{ form.message.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-lg">Submit Message</button>
+
+                    <button type="submit" class="btn btn-primary btn-lg mt-4">Submit Message</button>
                 </form>
             </div>
         </div>
     </div>
 </section>
 {% endblock %}
+

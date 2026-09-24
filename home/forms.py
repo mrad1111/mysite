@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.core.validators import RegexValidator
 
 from .models import Review
+
 
 
 class LoginForm(AuthenticationForm):
@@ -49,6 +50,21 @@ class RegisterForm(forms.ModelForm):
             }
         )
     )
+    phone_number = forms.CharField(
+        max_length=10,
+        min_length=10,
+        validators=[RegexValidator(r"^\d{10}$", "Enter exactly 10 digits.")],
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control form-control-lg ps-5",
+                "placeholder": "10-digit mobile number",
+                "autocomplete": "tel",
+                "inputmode": "numeric",
+                "pattern": "[0-9]{10}",
+                "oninput": "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)",
+            }
+        ),
+    )
     password = forms.CharField(
         widget=forms.PasswordInput(
             attrs={
@@ -64,8 +80,15 @@ class RegisterForm(forms.ModelForm):
         fields = [
             "username",
             "email",
+            "phone_number",
             "password",
         ]
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get("phone_number", "")
+        if not phone_number.isdigit() or len(phone_number) != 10:
+            raise forms.ValidationError("Enter exactly 10 digits.")
+        return phone_number
 
 
 
@@ -131,3 +154,53 @@ class ReviewForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control form-control-lg ps-5",
+                "placeholder": "name@example.com",
+                "autocomplete": "email",
+                "id": "emailInput",
+            }
+        ),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if not email:
+            raise forms.ValidationError("Please enter a valid email address.")
+        
+        users = User.objects.filter(email__iexact=email, is_active=True)
+        if not users.exists():
+            raise forms.ValidationError("No registered account found with this email address. Please check your email ID or create a new account.")
+            
+        return email
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(
+        label="New password",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control form-control-lg ps-5 pe-5",
+                "placeholder": "Enter new password",
+                "autocomplete": "new-password",
+                "id": "newPasswordInput",
+            }
+        ),
+    )
+    new_password2 = forms.CharField(
+        label="Confirm new password",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control form-control-lg ps-5 pe-5",
+                "placeholder": "Confirm new password",
+                "autocomplete": "new-password",
+                "id": "confirmPasswordInput",
+            }
+        ),
+    )

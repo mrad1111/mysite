@@ -41,6 +41,12 @@ urlpatterns = [
     ),
 
     path(
+        "profile/",
+        views.profile,
+        name="profile",
+    ),
+
+    path(
         "category/<int:category_id>/",
         views.category_products,
         name="category_products",

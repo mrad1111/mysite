@@ -1,12 +1,25 @@
+import os
+import random
+import time
 from decimal import Decimal
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 
 from .models import Product, Category, Order, OrderItem, Review , Wishlist, CustomerProfile
 from .forms import RegisterForm, ReviewForm, LoginForm, CheckoutForm, ContactForm
+
 
 
 def index(request):
@@ -459,3 +472,132 @@ def contact(request):
             "success_message": success_message,
         },
     )
+
+
+def send_otp_api(request):
+    """Generates a 6-digit OTP and emails it to the user's Gmail address."""
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+
+        if not email:
+            return JsonResponse({"success": False, "message": "Please enter a valid email address."})
+
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if not user:
+            return JsonResponse({"success": False, "message": "No registered account found with this email address."})
+
+        # Generate a 6-digit OTP
+        otp = str(random.randint(100000, 999999))
+
+        # Store in session with timestamp
+        request.session["reset_otp"] = otp
+        request.session["reset_email"] = email
+        request.session["reset_otp_time"] = time.time()
+
+        subject = "ARKAN'S Store — Password Reset OTP"
+        message = (
+            f"Hello {user.get_full_name() or user.username},\n\n"
+            f"Your One-Time Password (OTP) to reset your password on ARKAN'S Store is:\n\n"
+            f"  {otp}\n\n"
+            f"This OTP is valid for 10 minutes. If you did not request a password reset, please ignore this email.\n\n"
+            f"Best regards,\n"
+            f"ARKAN'S Store Team"
+        )
+
+        # Dynamically ensure latest .env credentials are in settings (handles server running state)
+        if load_dotenv:
+            env_file = settings.BASE_DIR / '.env'
+            if env_file.exists():
+                load_dotenv(env_file, override=True)
+                settings.EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', settings.EMAIL_HOST_USER)
+                pwd = os.environ.get('EMAIL_HOST_PASSWORD', '').replace(' ', '')
+                if pwd:
+                    settings.EMAIL_HOST_PASSWORD = pwd
+                settings.DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER)
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+            return JsonResponse({
+                "success": True,
+                "message": f"OTP sent successfully to {email}! Please check your Gmail inbox or spam folder."
+            })
+        except Exception as e:
+            print(f"\n=======================================================")
+            print(f"=== EMAIL OTP FOR {email}: {otp} ===")
+            print(f"=== SMTP ERROR: {e} ===")
+            print(f"=======================================================\n")
+            
+            error_str = str(e)
+            if "BadCredentials" in error_str or "535" in error_str:
+                err_msg = f"Failed to send email to {email}. Invalid Gmail App Password or Bad Credentials (535)."
+            else:
+                err_msg = f"Failed to send email to {email}. Error: {error_str}"
+
+            return JsonResponse({
+                "success": False,
+                "message": err_msg
+            })
+
+
+    return JsonResponse({"success": False, "message": "Invalid request method."})
+
+
+def verify_otp_and_reset_password_api(request):
+    """Verifies the submitted OTP and resets the user password."""
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        otp_submitted = request.POST.get("otp", "").strip()
+        new_password = request.POST.get("new_password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
+
+        session_email = request.session.get("reset_email")
+        session_otp = request.session.get("reset_otp")
+        session_otp_time = request.session.get("reset_otp_time", 0)
+
+        if not session_otp or not session_email or session_email.lower() != email.lower():
+            return JsonResponse({"success": False, "message": "No active OTP request found for this email. Please click 'Send OTP' first."})
+
+        # Check OTP expiration (10 minutes = 600 seconds)
+        if time.time() - session_otp_time > 600:
+            return JsonResponse({"success": False, "message": "OTP has expired (valid for 10 minutes). Please click 'Send OTP' again."})
+
+        if otp_submitted != session_otp:
+            return JsonResponse({"success": False, "message": "Invalid OTP code. Please check your email and enter the correct OTP."})
+
+        if not new_password:
+            return JsonResponse({"success": False, "message": "Please enter a new password."})
+
+        if len(new_password) < 6:
+            return JsonResponse({"success": False, "message": "Password must be at least 6 characters long."})
+
+        if new_password != confirm_password:
+            return JsonResponse({"success": False, "message": "New passwords do not match. Please try again."})
+
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if not user:
+            return JsonResponse({"success": False, "message": "Account not found."})
+
+        # Reset password
+        user.set_password(new_password)
+        user.save()
+
+        # Clear session OTP data
+        request.session.pop("reset_otp", None)
+        request.session.pop("reset_email", None)
+        request.session.pop("reset_otp_time", None)
+
+        return JsonResponse({
+            "success": True,
+            "message": "Password changed successfully! You can now log in with your new password.",
+            "email": email,
+            "username": user.username
+        })
+
+    return JsonResponse({"success": False, "message": "Invalid request method."})
+

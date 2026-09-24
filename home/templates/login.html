@@ -80,7 +80,7 @@
                             {% endif %}
                         </div>
 
-                        <!-- Remember Me & Forgot Password -->
+                        <!-- Remember Me & Forgot Password Pop-up Trigger -->
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="rememberMe" name="remember_me">
@@ -89,10 +89,11 @@
                                 </label>
                             </div>
                             <div>
-                                <a href="{% url 'password_reset' %}" class="small text-primary text-decoration-none fw-semibold">Forgot Password?</a>
+                                <button type="button" class="btn btn-link p-0 small text-primary text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                                    Forgot Password?
+                                </button>
                             </div>
                         </div>
-
 
                         <!-- Submit Button -->
                         <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
@@ -127,9 +128,111 @@
     </div>
 </div>
 
-<!-- Password Visibility Toggle Script -->
+<!-- Forgot Password OTP Modal (Pop-up) -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <!-- Modal Header Accent -->
+            <div class="modal-header border-0 text-white p-4" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-white bg-opacity-20 d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px;">
+                        <i class="bi bi-envelope-at-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="forgotPasswordModalLabel">Reset Password via Gmail OTP</h5>
+                        <small class="text-white-50">Receive 6-digit OTP on your Gmail ID</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 p-sm-5">
+                <!-- Alert Box -->
+                <div id="otpAlert" class="alert d-none rounded-3 py-2 px-3 small mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i id="otpAlertIcon" class="bi me-2 fs-6"></i>
+                        <span id="otpAlertMsg"></span>
+                    </div>
+                </div>
+
+                <form id="otpResetForm" method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Step 1: Registered Gmail ID -->
+                    <div class="mb-3">
+                        <label for="otpEmail" class="form-label fw-semibold text-secondary small">Registered Gmail Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                <i class="bi bi-envelope-fill"></i>
+                            </span>
+                            <input type="email" class="form-control form-control-lg ps-2" id="otpEmail" name="email" placeholder="info11@gmail.com" required>
+                            <button type="button" id="btnSendOtp" class="btn btn-outline-primary fw-semibold px-3 d-flex align-items-center gap-1">
+                                <span id="btnSendOtpText">Send OTP</span>
+                                <span id="btnSendOtpSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                        <div class="form-text text-muted small mt-1">
+                            Click <strong>Send OTP</strong> to receive a 6-digit code on your email.
+                        </div>
+                    </div>
+
+                    <!-- Step 2: OTP & New Password (Hidden until OTP is sent) -->
+                    <div id="otpFieldsSection" class="d-none border-top pt-3 mt-3">
+                        <!-- Enter 6-Digit OTP -->
+                        <div class="mb-3">
+                            <label for="otpCode" class="form-label fw-semibold text-secondary small">Enter 6-Digit OTP</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-shield-lock-fill text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg ps-2 tracking-widest fw-bold text-primary" id="otpCode" name="otp" placeholder="123456" maxlength="6" pattern="\d{6}">
+                            </div>
+                        </div>
+
+                        <!-- New Password -->
+                        <div class="mb-3">
+                            <label for="otpNewPassword" class="form-label fw-semibold text-secondary small">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-key-fill"></i>
+                                </span>
+                                <input type="password" class="form-control form-control-lg ps-2" id="otpNewPassword" name="new_password" placeholder="Enter new password (min 6 characters)">
+                            </div>
+                        </div>
+
+                        <!-- Confirm New Password -->
+                        <div class="mb-4">
+                            <label for="otpConfirmPassword" class="form-label fw-semibold text-secondary small">Confirm New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-end-0 text-muted px-3">
+                                    <i class="bi bi-check2-circle"></i>
+                                </span>
+                                <input type="password" class="form-control form-control-lg ps-2" id="otpConfirmPassword" name="confirm_password" placeholder="Confirm new password">
+                            </div>
+                        </div>
+
+                        <!-- Submit Verification Button -->
+                        <button type="submit" id="btnVerifyOtp" class="btn btn-primary w-100 py-2.5 rounded-3 fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <span id="btnVerifyText">Verify OTP & Reset Password</span>
+                            <span id="btnVerifySpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer bg-body-tertiary border-top-0 py-3 px-4 text-center justify-content-center">
+                <small class="text-muted d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-shield-check text-success"></i> Secure OTP Verification via Gmail SMTP
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Visibility & OTP JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Main Password Visibility Toggle
         const toggleBtn = document.getElementById('togglePasswordBtn');
         const passwordInput = document.getElementById('passwordInput') || document.getElementById('id_password');
         const toggleIcon = document.getElementById('togglePasswordIcon');
@@ -141,6 +244,174 @@
                 toggleIcon.classList.toggle('bi-eye-slash-fill', !isPassword);
                 toggleIcon.classList.toggle('bi-eye-fill', isPassword);
             });
+        }
+
+        // OTP Elements
+        const btnSendOtp = document.getElementById('btnSendOtp');
+        const btnSendOtpText = document.getElementById('btnSendOtpText');
+        const btnSendOtpSpinner = document.getElementById('btnSendOtpSpinner');
+        
+        const otpEmail = document.getElementById('otpEmail');
+        const otpFieldsSection = document.getElementById('otpFieldsSection');
+        const otpResetForm = document.getElementById('otpResetForm');
+
+        const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+        const btnVerifyText = document.getElementById('btnVerifyText');
+        const btnVerifySpinner = document.getElementById('btnVerifySpinner');
+
+        const alertBox = document.getElementById('otpAlert');
+        const alertMsg = document.getElementById('otpAlertMsg');
+        const alertIcon = document.getElementById('otpAlertIcon');
+
+        // Step 1: Send OTP Click Handler
+        if (btnSendOtp) {
+            btnSendOtp.addEventListener('click', function() {
+                const email = otpEmail.value.trim();
+                const csrfToken = document.querySelector('#otpResetForm [name=csrfmiddlewaretoken]').value;
+
+                hideAlert();
+
+                if (!email) {
+                    showAlert('Please enter a valid Gmail / Email address.', 'danger');
+                    otpEmail.focus();
+                    return;
+                }
+
+                // UI Loading state
+                btnSendOtp.disabled = true;
+                btnSendOtpSpinner.classList.remove('d-none');
+                btnSendOtpText.textContent = 'Sending...';
+
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('csrfmiddlewaretoken', csrfToken);
+
+                fetch("{% url 'send_otp_api' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnSendOtp.disabled = false;
+                    btnSendOtpSpinner.classList.add('d-none');
+
+                    if (data.success) {
+                        btnSendOtpText.textContent = 'Resend OTP';
+                        showAlert(data.message, 'success');
+                        // Reveal Step 2 OTP fields
+                        otpFieldsSection.classList.remove('d-none');
+                        document.getElementById('otpCode').focus();
+                    } else {
+                        btnSendOtpText.textContent = 'Send OTP';
+                        showAlert(data.message || 'Failed to send OTP.', 'danger');
+                    }
+                })
+                .catch(err => {
+                    btnSendOtp.disabled = false;
+                    btnSendOtpSpinner.classList.add('d-none');
+                    btnSendOtpText.textContent = 'Send OTP';
+                    showAlert('Failed to connect to email server. Please try again.', 'danger');
+                });
+            });
+        }
+
+        // Step 2: Verify OTP & Reset Password Form Handler
+        if (otpResetForm) {
+            otpResetForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const email = otpEmail.value.trim();
+                const otp = document.getElementById('otpCode').value.trim();
+                const newPassword = document.getElementById('otpNewPassword').value.trim();
+                const confirmPassword = document.getElementById('otpConfirmPassword').value.trim();
+                const csrfToken = document.querySelector('#otpResetForm [name=csrfmiddlewaretoken]').value;
+
+                hideAlert();
+
+                if (!email) {
+                    showAlert('Please enter your email address.', 'danger');
+                    return;
+                }
+                if (!otp || otp.length !== 6) {
+                    showAlert('Please enter the 6-digit OTP received in your email.', 'danger');
+                    document.getElementById('otpCode').focus();
+                    return;
+                }
+                if (!newPassword) {
+                    showAlert('Please enter a new password.', 'danger');
+                    document.getElementById('otpNewPassword').focus();
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    showAlert('Password must be at least 6 characters long.', 'danger');
+                    document.getElementById('otpNewPassword').focus();
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    showAlert('Passwords do not match. Please try again.', 'danger');
+                    document.getElementById('otpConfirmPassword').focus();
+                    return;
+                }
+
+                // Loading State
+                btnVerifyOtp.disabled = true;
+                btnVerifySpinner.classList.remove('d-none');
+                btnVerifyText.textContent = 'Verifying OTP...';
+
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('otp', otp);
+                formData.append('new_password', newPassword);
+                formData.append('confirm_password', confirmPassword);
+                formData.append('csrfmiddlewaretoken', csrfToken);
+
+                fetch("{% url 'verify_otp_and_reset_password_api' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btnVerifyOtp.disabled = false;
+                    btnVerifySpinner.classList.add('d-none');
+                    btnVerifyText.textContent = 'Verify OTP & Reset Password';
+
+                    if (data.success) {
+                        showAlert(data.message, 'success');
+                        otpResetForm.reset();
+                        otpFieldsSection.classList.add('d-none');
+                        btnSendOtpText.textContent = 'Send OTP';
+
+                        // Auto pre-fill username field on main login form
+                        const mainUsernameInput = document.getElementById('usernameInput') || document.getElementById('id_username');
+                        if (mainUsernameInput) {
+                            mainUsernameInput.value = data.email || data.username || email;
+                        }
+                    } else {
+                        showAlert(data.message || 'Verification failed. Please try again.', 'danger');
+                    }
+                })
+                .catch(err => {
+                    btnVerifyOtp.disabled = false;
+                    btnVerifySpinner.classList.add('d-none');
+                    btnVerifyText.textContent = 'Verify OTP & Reset Password';
+                    showAlert('Server error. Please try again.', 'danger');
+                });
+            });
+        }
+
+        function showAlert(msg, type) {
+            alertMsg.textContent = msg;
+            alertBox.className = `alert alert-${type} rounded-3 py-2 px-3 small mb-4`;
+            alertIcon.className = type === 'success' 
+                ? 'bi bi-check-circle-fill me-2 fs-6' 
+                : 'bi bi-exclamation-triangle-fill me-2 fs-6';
+            alertBox.classList.remove('d-none');
+        }
+
+        function hideAlert() {
+            alertBox.classList.add('d-none');
         }
     });
 </script>

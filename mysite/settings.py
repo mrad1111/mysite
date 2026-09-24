@@ -147,17 +147,30 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ======================
-# LOGIN SETTINGS
+# LOGIN & AUTHENTICATION SETTINGS
 # ======================
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
+AUTHENTICATION_BACKENDS = [
+    'home.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # ======================
-# EMAIL CONFIGURATION
+# EMAIL CONFIGURATION (GMAIL SMTP)
 # ======================
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', "ARKAN'S Store <noreply@arkanstore.com>")
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'True').lower() == 'true'
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'info11@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').replace(' ', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+
 
 
 # ======================
@@ -169,9 +182,11 @@ JAZZMIN_SETTINGS = {
     "site_brand": "ARKAN Store Control",
     "welcome_sign": "Welcome to ARKAN'S Store Control Panel",
     "copyright": "ARKAN'S Store Ltd",
-    "search_model": ["home.Product", "auth.User"],
+    "search_model": ["home.Product", "auth.User", "home.CustomerProfile"],
     "topmenu_links": [
         {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Site Login Users", "url": "admin:auth_user_changelist", "permissions": ["auth.view_user"]},
+        {"name": "Customer Profiles", "url": "admin:home_customerprofile_changelist", "permissions": ["home.view_customerprofile"]},
         {"name": "View Website", "url": "/", "new_window": True},
     ],
     "usermenu_links": [
@@ -183,7 +198,7 @@ JAZZMIN_SETTINGS = {
     "hide_models": [],
     "icons": {
         "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user-shield",
+        "auth.user": "fas fa-user-check",
         "auth.group": "fas fa-users",
         "home.category": "fas fa-list-ul",
         "home.product": "fas fa-mobile-alt",
@@ -191,6 +206,7 @@ JAZZMIN_SETTINGS = {
         "home.orderitem": "fas fa-boxes",
         "home.review": "fas fa-star",
         "home.wishlist": "fas fa-heart",
+        "home.customerprofile": "fas fa-address-book",
     },
     "default_icon_parents": "fas fa-folder",
     "default_icon_children": "fas fa-circle",

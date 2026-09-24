@@ -99,4 +99,15 @@ urlpatterns = [
     views.wishlist,
     name="wishlist",
 ),
+    path(
+    "send-otp/",
+    views.send_otp_api,
+    name="send_otp_api",
+),
+    path(
+    "verify-otp-reset-password/",
+    views.verify_otp_and_reset_password_api,
+    name="verify_otp_and_reset_password_api",
+),
 ]
+

@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db import models
 from django.db.models import Sum
 from django.forms import TextInput
@@ -12,6 +14,8 @@ from .models import (
     Order,
     OrderItem,
     Review,
+    CustomerProfile,
+    Wishlist,
 )
 
 
@@ -184,3 +188,83 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = (
         "rating",
     )
+
+
+class CustomerProfileInline(admin.StackedInline):
+    model = CustomerProfile
+    can_delete = False
+    verbose_name_plural = "Customer Profile & Contact Info"
+    fk_name = "user"
+
+
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(User)
+class CustomUserAdmin(BaseUserAdmin):
+    inlines = (CustomerProfileInline,)
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "get_phone_number",
+        "get_order_count",
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "date_joined",
+        "last_login",
+    )
+    list_filter = ("is_staff", "is_superuser", "is_active", "date_joined")
+    search_fields = ("username", "email", "profile__phone_number")
+    ordering = ("-id",)
+
+    def get_phone_number(self, obj):
+        if hasattr(obj, "profile") and obj.profile and obj.profile.phone_number:
+            return obj.profile.phone_number
+        return "-"
+    get_phone_number.short_description = "Mobile / Phone"
+
+    def get_order_count(self, obj):
+        count = obj.order_set.count()
+        if count > 0:
+            return format_html('<span class="badge badge-info">{} Orders</span>', count)
+        return format_html('<span class="badge badge-secondary">{} Orders</span>', count)
+    get_order_count.short_description = "Total Orders"
+
+
+@admin.register(CustomerProfile)
+class CustomerProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "get_email",
+        "phone_number",
+        "get_date_joined",
+        "get_order_count",
+    )
+    search_fields = ("user__username", "user__email", "phone_number")
+    list_filter = ("user__is_active", "user__date_joined")
+
+    def get_email(self, obj):
+        return obj.user.email
+    get_email.short_description = "Email Address"
+
+    def get_date_joined(self, obj):
+        return obj.user.date_joined.strftime("%Y-%m-%d %H:%M") if obj.user.date_joined else "-"
+    get_date_joined.short_description = "Date Joined"
+
+    def get_order_count(self, obj):
+        count = obj.user.order_set.count()
+        return f"{count} order(s)"
+    get_order_count.short_description = "Orders"
+
+
+@admin.register(Wishlist)
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "product", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "product__name")

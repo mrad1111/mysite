@@ -70,6 +70,27 @@
         <div class="store-nav-links">
             <a href="{% url 'home' %}">Home</a>
             {% for category in categories %}
+            {% if category.subcategories.all %}
+            <div class="dropdown category-nav-dropdown d-inline-block">
+                <a href="{% url 'category_products' category.id %}" class="category-nav-link dropdown-toggle" id="catNavDropdown{{ category.id }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if category.name|lower == 'phones' %}<i class="bi bi-phone category-nav-icon" aria-hidden="true"></i>
+                    {% elif category.name|lower == 'tablets' %}<i class="bi bi-tablet category-nav-icon" aria-hidden="true"></i>
+                    {% elif category.name|lower == 'laptops' %}<i class="bi bi-laptop category-nav-icon" aria-hidden="true"></i>
+                    {% elif category.name|lower == 'tvs' %}<i class="bi bi-tv category-nav-icon" aria-hidden="true"></i>
+                    {% elif category.name|lower == 'accessories' %}<i class="bi bi-headphones category-nav-icon" aria-hidden="true"></i>
+                    {% else %}<i class="bi bi-grid category-nav-icon" aria-hidden="true"></i>
+                    {% endif %}
+                    <span>{{ category.name }}</span>
+                </a>
+                <ul class="dropdown-menu shadow-sm" aria-labelledby="catNavDropdown{{ category.id }}">
+                    <li><a class="dropdown-item fw-bold text-primary" href="{% url 'category_products' category.id %}"><i class="bi bi-arrow-right-circle me-1"></i> All {{ category.name }}</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for subcat in category.subcategories.all %}
+                    <li><a class="dropdown-item" href="{% url 'subcategory_products' subcat.id %}">{{ subcat.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% else %}
             <a href="{% url 'category_products' category.id %}" class="category-nav-link">
                 {% if category.name|lower == 'phones' %}<i class="bi bi-phone category-nav-icon" aria-hidden="true"></i>
                 {% elif category.name|lower == 'tablets' %}<i class="bi bi-tablet category-nav-icon" aria-hidden="true"></i>
@@ -80,6 +101,7 @@
                 {% endif %}
                 <span>{{ category.name }}</span>
             </a>
+            {% endif %}
             {% endfor %}
             <a href="{% url 'about' %}">About</a>
             <a href="{% url 'contact' %}">Contact</a>

@@ -10,6 +10,7 @@ from django.forms import TextInput
 from django.utils.html import format_html
 from .models import (
     Category,
+    SubCategory,
     Product,
     Order,
     OrderItem,
@@ -65,7 +66,10 @@ class ProductAdminForm(forms.ModelForm):
         fields = '__all__'
 
     class Media:
-        js = ('home/js/admin_price_format.js',)
+        js = (
+            'home/js/admin_price_format.js',
+            'home/js/admin_subcategory.js',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -76,6 +80,23 @@ class ProductAdminForm(forms.ModelForm):
 
         if price is not None:
             self.fields['price'].initial = format_price_for_display(price)
+
+        category_id = None
+        if self.data and self.data.get('category'):
+            try:
+                category_id = int(self.data.get('category'))
+            except (ValueError, TypeError):
+                pass
+        elif self.initial.get('category'):
+            category_id = self.initial.get('category')
+        elif self.instance and self.instance.category_id:
+            category_id = self.instance.category_id
+
+        if 'subcategory' in self.fields:
+            if category_id:
+                self.fields['subcategory'].queryset = SubCategory.objects.filter(category_id=category_id)
+            else:
+                self.fields['subcategory'].queryset = SubCategory.objects.all()
 
     def clean_price(self):
         price = self.cleaned_data.get('price')
@@ -92,9 +113,23 @@ class ProductAdminForm(forms.ModelForm):
         return price
 
 
+class SubCategoryInline(admin.TabularInline):
+    model = SubCategory
+    extra = 1
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
+    inlines = [SubCategoryInline]
+
+
+@admin.register(SubCategory)
+class SubCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "category")
+    list_filter = ("category",)
+    search_fields = ("name", "category__name")
+    list_editable = ("category",)
 
 
 @admin.register(Product)
@@ -110,15 +145,17 @@ class ProductAdmin(admin.ModelAdmin):
         "id",
         "name",
         "category",
+        "subcategory",
         "price",
         "stock",
         "featured",
     )
 
-    list_editable = ("category", "stock")
+    list_editable = ("category", "subcategory", "stock")
 
     list_filter = (
         "category",
+        "subcategory",
         "featured",
     )
 
@@ -132,7 +169,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("Product Details", {
-            "fields": ("name", "category", "description", "image", "price", "stock", "featured")
+            "fields": ("name", "category", "subcategory", "description", "image", "price", "stock", "featured")
         }),
     )
 

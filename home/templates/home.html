@@ -31,11 +31,17 @@
 <section class="container py-5" id="products">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
         <div>
-            <h2 class="fw-bold">All Products</h2>
+            <h2 class="fw-bold">
+                {% if selected_category %}{{ selected_category.name }}{% if selected_subcategory %} — {{ selected_subcategory.name }}{% endif %}{% else %}All Products{% endif %}
+            </h2>
             <p class="text-muted mb-0">Browse our full collection of premium devices and accessories.</p>
         </div>
-        <a href="#products" class="btn btn-outline-primary mt-3 mt-md-0">Shop All</a>
+        {% if selected_category or selected_subcategory %}
+        <a href="{% url 'home' %}#products" class="btn btn-outline-primary mt-3 mt-md-0"><i class="bi bi-x-circle"></i> Clear Filters</a>
+        {% endif %}
     </div>
+
+
 
     <div class="row g-4">
         {% for p in products %}
@@ -52,6 +58,14 @@
                 </a>
                 {% endif %}
                 <div class="card-body d-flex flex-column">
+                    <div class="mb-2">
+                        {% if p.category %}
+                        <span class="badge bg-light text-dark border me-1">{{ p.category.name }}</span>
+                        {% endif %}
+                        {% if p.subcategory %}
+                        <span class="badge bg-info text-dark">{{ p.subcategory.name }}</span>
+                        {% endif %}
+                    </div>
                     <h5><a href="{% url 'product_detail' p.id %}" class="text-dark text-decoration-none">{{ p.name }}</a></h5>
                     <p class="text-warning">★★★★★</p>
                     <h4 class="text-primary mt-auto">₹ {{ p.price }}</h4>

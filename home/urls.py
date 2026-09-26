@@ -53,6 +53,18 @@ urlpatterns = [
     ),
 
     path(
+        "subcategory/<int:subcategory_id>/",
+        views.subcategory_products,
+        name="subcategory_products",
+    ),
+
+    path(
+        "api/subcategories/",
+        views.get_subcategories_api,
+        name="get_subcategories_api",
+    ),
+
+    path(
         "register/",
         views.register,
         name="register",

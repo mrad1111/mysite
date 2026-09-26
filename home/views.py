@@ -17,7 +17,7 @@ from django.conf import settings
 
 
 
-from .models import Product, Category, Order, OrderItem, Review , Wishlist, CustomerProfile
+from .models import Product, Category, SubCategory, Order, OrderItem, Review , Wishlist, CustomerProfile
 from .forms import RegisterForm, ReviewForm, LoginForm, CheckoutForm, ContactForm
 
 
@@ -28,14 +28,37 @@ def index(request):
 
 def home(request):
 
-    categories = Category.objects.all()
-    products = Product.objects.all()
+    categories = Category.objects.prefetch_related("subcategories").all()
+    products = Product.objects.select_related("category", "subcategory").all()
 
     category_id = request.GET.get("category")
+    subcategory_id = request.GET.get("subcategory")
     search = request.GET.get("search")
 
+    selected_category = None
+    selected_subcategory = None
+    subcategories = []
+
     if category_id:
-        products = products.filter(category_id=category_id)
+        try:
+            cat_id = int(category_id)
+            products = products.filter(category_id=cat_id)
+            selected_category = categories.filter(id=cat_id).first()
+            if selected_category:
+                subcategories = list(selected_category.subcategories.all())
+        except ValueError:
+            pass
+
+    if subcategory_id:
+        try:
+            subcat_id = int(subcategory_id)
+            products = products.filter(subcategory_id=subcat_id)
+            selected_subcategory = SubCategory.objects.filter(id=subcat_id).first()
+            if selected_subcategory and not selected_category:
+                selected_category = selected_subcategory.category
+                subcategories = list(selected_category.subcategories.all())
+        except ValueError:
+            pass
 
     if search:
         products = products.filter(name__icontains=search)
@@ -43,8 +66,6 @@ def home(request):
     cart = request.session.get("cart", {})
     cart_count = sum(cart.values())
 
-    # Provide wishlist product ids for authenticated users so templates
-    # can indicate which products are already wishlisted.
     if request.user.is_authenticated:
         wishlist_product_ids = set(
             Wishlist.objects.filter(user=request.user).values_list("product_id", flat=True)
@@ -58,6 +79,9 @@ def home(request):
         {
             "products": products,
             "categories": categories,
+            "subcategories": subcategories,
+            "selected_category": selected_category,
+            "selected_subcategory": selected_subcategory,
             "search": search,
             "cart_count": cart_count,
             "wishlist_product_ids": wishlist_product_ids,
@@ -408,14 +432,30 @@ def product_detail(request, product_id):
 
 def category_products(request, category_id):
 
-    categories = Category.objects.all()
+    categories = Category.objects.prefetch_related("subcategories").all()
+    selected_category = get_object_or_404(Category, id=category_id)
+    subcategories = list(selected_category.subcategories.all())
+    products = Product.objects.filter(category=selected_category).select_related("category", "subcategory")
 
-    products = Product.objects.filter(
-        category_id=category_id
-    )
+    subcategory_id = request.GET.get("subcategory")
+    selected_subcategory = None
+    if subcategory_id:
+        try:
+            subcat_id = int(subcategory_id)
+            products = products.filter(subcategory_id=subcat_id)
+            selected_subcategory = SubCategory.objects.filter(id=subcat_id).first()
+        except ValueError:
+            pass
 
     cart = request.session.get("cart", {})
     cart_count = sum(cart.values())
+
+    if request.user.is_authenticated:
+        wishlist_product_ids = set(
+            Wishlist.objects.filter(user=request.user).values_list("product_id", flat=True)
+        )
+    else:
+        wishlist_product_ids = set()
 
     return render(
         request,
@@ -423,12 +463,60 @@ def category_products(request, category_id):
         {
             "products": products,
             "categories": categories,
+            "subcategories": subcategories,
+            "selected_category": selected_category,
+            "selected_subcategory": selected_subcategory,
             "cart_count": cart_count,
             "search": "",
-            "wishlist_product_ids": set(),
+            "wishlist_product_ids": wishlist_product_ids,
             "is_category_page": True,
         },
     )
+
+
+def subcategory_products(request, subcategory_id):
+
+    categories = Category.objects.prefetch_related("subcategories").all()
+    selected_subcategory = get_object_or_404(SubCategory.objects.select_related("category"), id=subcategory_id)
+    selected_category = selected_subcategory.category
+    subcategories = list(selected_category.subcategories.all())
+    products = Product.objects.filter(subcategory=selected_subcategory).select_related("category", "subcategory")
+
+    cart = request.session.get("cart", {})
+    cart_count = sum(cart.values())
+
+    if request.user.is_authenticated:
+        wishlist_product_ids = set(
+            Wishlist.objects.filter(user=request.user).values_list("product_id", flat=True)
+        )
+    else:
+        wishlist_product_ids = set()
+
+    return render(
+        request,
+        "products.html",
+        {
+            "products": products,
+            "categories": categories,
+            "subcategories": subcategories,
+            "selected_category": selected_category,
+            "selected_subcategory": selected_subcategory,
+            "cart_count": cart_count,
+            "search": "",
+            "wishlist_product_ids": wishlist_product_ids,
+            "is_category_page": True,
+        },
+    )
+
+
+def get_subcategories_api(request):
+
+    category_id = request.GET.get("category_id")
+    if category_id:
+        subs = SubCategory.objects.filter(category_id=category_id).values("id", "name")
+    else:
+        subs = SubCategory.objects.values("id", "name", "category_id")
+    return JsonResponse({"subcategories": list(subs)})
 
 
 def about(request):

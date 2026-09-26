@@ -15,20 +15,7 @@
             </form>
         </div>
 
-        {% if not is_category_page %}
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="btn-group flex-wrap" role="group">
-                    <a href="{% url 'home' %}" class="btn btn-outline-primary {% if not request.GET.category %}active{% endif %}">All</a>
-                    {% for category in categories %}
-                    <a href="{% url 'home' %}?category={{ category.id }}" class="btn btn-outline-primary {% if request.GET.category == category.id|stringformat:'s' %}active{% endif %}">
-                        {{ category.name }}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
+
 
         <div class="row">
             {% for p in products %}
@@ -45,6 +32,14 @@
                     </a>
                     {% endif %}
                     <div class="card-body text-center d-flex flex-column">
+                        <div class="mb-2">
+                            {% if p.category %}
+                            <span class="badge bg-light text-dark border me-1">{{ p.category.name }}</span>
+                            {% endif %}
+                            {% if p.subcategory %}
+                            <span class="badge bg-info text-dark">{{ p.subcategory.name }}</span>
+                            {% endif %}
+                        </div>
                         <h5><a href="{% url 'product_detail' p.id %}" class="text-decoration-none text-dark">{{ p.name }}</a></h5>
                         <h4 class="text-primary mt-auto">₹{{ p.price }}</h4>
                         {% if user.is_authenticated %}
